@@ -1,0 +1,201 @@
+---
+title: "Heuristic Techniques for Assessing Internet Privacy: A Comprehensive Review and Analysis"
+authors: "David Cevallos-Salas, José Estrada-Jiménez, Danny S. Guamán"
+output: html_notebook
+---
+
+```{r}
+library(sur)
+library(ggplot2)
+library(ggpubr)
+library(readxl)
+library(viridis)
+palette <- viridis(4, alpha= 1, begin = 0.3, end = 0.8, direction = 1, option="viridis")
+```
+
+```{r}
+
+Bibliography <- read_excel("E:/Doctorado/Research-Plan-Complete/Bibliography.xlsx", 
+    sheet = "Consolidated")
+View(Bibliography)
+
+```
+
+```{r}
+
+Bibliography
+
+```
+
+```{r}
+# gridExtra::grid.arrange(plotYears,bottom="Bottom Title")
+# steelblue
+dfYears = as.data.frame.table(table(Bibliography$Year[Bibliography$Paper=="I"]))
+
+plotYears = ggplot(data=dfYears, aes(x=Var1, y=Freq)) +
+  geom_bar(stat="identity", fill=palette[1])+
+  geom_text(aes(label=Freq), vjust=-0.5, hjust=0.5, color="black", size=7)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  labs(title = "", x = "Year of publication", y = "Number of papers")+
+  scale_y_continuous(limits=c(0,28),breaks = seq(0, 28, by = 5))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 21), 
+    axis.text.y = element_text(size = 21),
+    axis.title.x = element_text(size = 21, margin=margin(t=10)),
+    axis.title.y = element_text(size = 21, margin=margin(r=10)))
+
+Bibliography1 = Bibliography
+
+Bibliography1$Technique[Bibliography1$Technique=="Information Measurement-Bayesian Approach"]="Information Measurement";
+Bibliography1$Technique[Bibliography1$Technique=="Information Measurement-Differentiation"]="Information Measurement";
+Bibliography1$Technique[Bibliography1$Technique=="Information Measurement-Entropy"]="Information Measurement";
+Bibliography1$Technique[Bibliography1$Technique=="Machine Learning Testing-Regression"]="Machine Learning Testing";
+Bibliography1$Technique[Bibliography1$Technique=="Machine Learning Testing-Classification"]="Machine Learning Testing";
+Bibliography1$Technique[Bibliography1$Technique=="Similarity Measurement-Aggregation"]="Similarity Measurement";
+Bibliography1$Technique[Bibliography1$Technique=="Similarity Measurement-Distance"]="Similarity Measurement";
+Bibliography1$Technique[Bibliography1$Technique=="Similarity Measurement-Correlation"]="Similarity Measurement";
+Bibliography1$Technique=factor(Bibliography1$Technique,levels=c("Perception Estimation","Privacy Policies Analysis","Information Measurement","Machine Learning Testing","Counting","Similarity Measurement"))
+
+dfTechniques = as.data.frame.table(table(Bibliography1$Technique[Bibliography1$Paper=="I"]))
+
+plotTechniques = ggplot(data=dfTechniques, aes(x=Var1, y=Freq)) +
+  geom_bar(stat="identity", fill=palette[1])+
+  geom_text(aes(label=Freq), vjust=-0.5, hjust=0.5, color="black", size=7)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  labs(title = "", x = "Heuristic Technique Category", y = "Number of papers")+
+  scale_y_continuous(limits=c(0,45))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 14), 
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 14, margin=margin(t=10)),
+    axis.title.y = element_text(size = 14, margin=margin(r=10)))
+
+plotYearsAndTechniques <- ggarrange(
+  plotYears,
+  plotTechniques
+)
+```
+
+```{r}
+#levelsTECH = c("Perception Estimation","Privacy Policies Analysis","Information Measurement-Entropy","Information Measurement-Differentiation","Information Measurement-Bayesian Approach","Machine Learning Testing-Regression","Machine Learning Testing-Classification","Counting","Similarity Measurement-Aggregation","Similarity Measurement-Distance","Similarity Measurement-Correlation")
+
+levelsTECH = c("Similarity Measurement-Correlation","Similarity Measurement-Distance","Similarity Measurement-Aggregation","Counting","Machine Learning Testing-Classification","Machine Learning Testing-Regression","Information Measurement-Bayesian Approach","Information Measurement-Differentiation","Information Measurement-Entropy","Privacy Policies Analysis","Perception Estimation")
+levelsML = c("Nominal","Ordinal","Interval","Ratio")
+levelsAL = c("Automatic","Semi-automatic","Manual")
+levelsTPM = c("Detection","Prevention","Response","Recovery")
+levelDM = c("Enterprise","Mobile","Industrial Control Systems")
+levelClass = c("Level of Assessment", "Level of Automation", "Type of Protection Mechanism", "Broad Domain")
+```
+
+```{r}
+dfML = as.data.frame.table(table(Bibliography$Technique[Bibliography$Paper=="I"],Bibliography$MeasurementLevel[Bibliography$Paper=="I"]))
+
+dfAL = as.data.frame.table(table(Bibliography$Technique[Bibliography$Paper=="I"],Bibliography$AutomationLevel[Bibliography$Paper=="I"]))
+
+dfTPM = as.data.frame.table(table(Bibliography$Technique[Bibliography$Paper=="I"],Bibliography$TypeOfProtectionMechanism[Bibliography$Paper=="I"]))
+
+dfDM = as.data.frame.table(table(Bibliography$Technique[Bibliography$Paper=="I"],Bibliography$Domain[Bibliography$Paper=="I"]))
+
+df = data.frame(
+  "X" = c(dfML$Var2,dfAL$Var2,dfTPM$Var2,dfDM$Var2),
+  "Y" = c(dfML$Var1,dfAL$Var1,dfTPM$Var1,dfDM$Var1),
+  "Class" = c(rep("Level of Assessment",nrow(dfML)),rep("Level of Automation",nrow(dfAL)),rep("Type of Protection Mechanism",nrow(dfTPM)),rep("Broad Domain",nrow(dfDM))),
+  "Freq" =  c(dfML$Freq,dfAL$Freq,dfTPM$Freq,dfDM$Freq)
+)
+
+df$X = factor(df$X,levels=c(levelsML,levelsAL,levelsTPM,levelDM))
+df$Y = factor(df$Y,levels=levelsTECH)
+df$Class = factor(df$Class,levels=levelClass)
+
+heatmap = ggplot(df, aes(x = X, y = Y, fill=Freq)) +
+geom_tile(color = "black") +
+geom_text(aes(label = Freq), color = "white", size = 4) +
+labs(fill = "Number of papers", x="", y ="Heuristic Technique Category")+
+facet_grid(~ Class, scales = "free_x", switch = "y", labeller = label_wrap_gen(width = 15))+
+theme(axis.text.x = element_text(angle = 90, hjust = 1),
+axis.title.y = element_text(margin = margin(r = 10)),
+strip.text = element_text(size = 10,face="bold"), legend.position = "none")
+
+
+```
+
+
+```{r}
+dfTPM_ML = as.data.frame.table(table(Bibliography$TypeOfProtectionMechanism[Bibliography$Paper=="I"],Bibliography$MeasurementLevel[Bibliography$Paper=="I"]))
+dfTPM_ML$Var1 = factor(dfTPM_ML$Var1,levels=levelsTPM)
+dfTPM_ML$Var2 = factor(dfTPM_ML$Var2,levels=levelsML)
+
+palette <- viridis(4, alpha= 1, begin = 0.4, end = 0.95, direction = 1, option="viridis")
+dfTPM_T = as.data.frame.table(table(Bibliography$TypeOfProtectionMechanism[Bibliography$Paper=="I"]))
+
+plotTPM_ML = ggplot(data=dfTPM_ML, aes(fill=Var2, y=Freq, x=Var1)) + 
+    geom_bar(position="stack", stat="identity")+
+    geom_text(aes(label = ifelse((Freq > 0), Freq, "")), size = ifelse((dfTPM_ML$Freq > 2), 3, 2.5), position = position_stack(vjust = 0.5))+
+    geom_text(aes(Var1, Freq, label = Freq, fill = NULL), data = dfTPM_T, vjust=-0.5, hjust=0.5, color="black", size=4, fontface = "bold")+
+    labs(x = "Type of Protection Mechanism", y = "Number of papers", fill = "Level of Assessment")+
+scale_fill_manual(values = palette)+
+   scale_y_continuous(limits=c(0,50),breaks = seq(0, 50, by = 10))+
+      theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 14), 
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 14, margin=margin(t=10)),
+    axis.title.y = element_text(size = 14, margin=margin(r=10)),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 14))
+```
+
+```{r}
+dfTPM_AL = as.data.frame.table(table(Bibliography$TypeOfProtectionMechanism[Bibliography$Paper=="I"],Bibliography$AutomationLevel[Bibliography$Paper=="I"]))
+dfTPM_AL$Var1 = factor(dfTPM_AL$Var1,levels=levelsTPM)
+dfTPM_AL$Var2 = factor(dfTPM_AL$Var2,levels=levelsAL)
+
+dfTPM_T = as.data.frame.table(table(Bibliography$TypeOfProtectionMechanism[Bibliography$Paper=="I"]))
+
+palette <- viridis(3, alpha= 1, begin = 0.4, end = 0.95, direction = 1, option="viridis")
+
+plotTPM_AL = ggplot(data=dfTPM_AL, aes(fill=Var2, y=Freq, x=Var1)) + 
+    geom_bar(position="stack", stat="identity")+
+   geom_text(aes(label = ifelse((Freq > 0), Freq, "")), size = ifelse((dfTPM_AL$Freq >= 2), 3, 2.5), position = position_stack(vjust = 0.5))+
+    geom_text(aes(Var1, Freq, label = Freq, fill = NULL), data = dfTPM_T, vjust=-0.5, hjust=0.5, color="black", size=4, fontface = "bold")+
+    labs(x = "Type of Protection Mechanism", y = "Number of papers", fill = "Level of Automation")+
+  scale_fill_manual(values = palette)+
+  scale_y_continuous(limits=c(0,50),breaks = seq(0, 50, by = 10))+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 14), 
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 14, margin=margin(t=10)),
+    axis.title.y = element_text(size = 14, margin=margin(r=10)),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 14))
+  
+```
+
+```{r}
+dfD_ML = as.data.frame.table(table(Bibliography$Domain[Bibliography$Paper=="I"],Bibliography$MeasurementLevel[Bibliography$Paper=="I"]))
+
+dfD_AL = as.data.frame.table(table(Bibliography$Domain[Bibliography$Paper=="I"],Bibliography$AutomationLevel[Bibliography$Paper=="I"]))
+
+dfD_TPM = as.data.frame.table(table(Bibliography$Domain[Bibliography$Paper=="I"],Bibliography$TypeOfProtectionMechanism[Bibliography$Paper=="I"]))
+
+df = data.frame(
+  "X" = c(dfD_ML$Var2,dfD_AL$Var2,dfD_TPM$Var2),
+  "Y" = c(dfD_ML$Var1,dfD_AL$Var1,dfD_TPM$Var1),
+  "Class" = c(rep("Level of Assessment",nrow(dfD_ML)),rep("Level of Automation",nrow(dfD_AL)),rep("Type of Protection Mechanism",nrow(dfD_TPM))),
+  "Freq" =  c(dfD_ML$Freq,dfD_AL$Freq,dfD_TPM$Freq)
+)
+
+df$X = factor(df$X,levels=c(levelsML,levelsAL,levelsTPM))
+df$Y = factor(df$Y,levels=c("Industrial Control Systems","Mobile","Enterprise"))
+df$Class = factor(df$Class,levels=c("Level of Assessment", "Level of Automation", "Type of Protection Mechanism"))
+
+# scale_size(name = "Number of papers", range = c(8, 15))+
+bubbles = ggplot(df, aes(x = X, y = Y, size = Freq, color=X)) +
+  geom_point(data = subset(df, Freq > 0), aes(size = Freq)) +
+  geom_text(aes(label = ifelse(Freq>0,Freq,"")), color = "white", size = 4.5) +
+  scale_size(guide="none",range = c(8, 25))+
+  labs(x="", y="Broad Domain")+
+  scale_colour_discrete(guide = "none",expand=c(0.1,0))+
+facet_grid(~ Class, scales = "free_x", switch = "y", labeller = label_wrap_gen(width = 25))+
+theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 14), 
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 14, margin=margin(t=10)),
+    axis.title.y = element_text(size = 14, margin=margin(r=10)),
+    strip.text = element_text(size = 14, face = "bold"))
+```
+

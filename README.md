@@ -23,4 +23,4 @@ Bibliography <- read_excel("Set_here_the_path_to_the_file_Bibliography.xlsx", sh
 View(Bibliography)
 ```
 
-- Bibliography.xlsx: This Excel file contains the detail of reviewed bibliography.
+- Bibliography.xlsx: This Excel file contains the detail of the reviewed bibliography, as well as the results from the pilot and main phase of the screening and coding procedures.
