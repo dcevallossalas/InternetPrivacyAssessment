@@ -6,7 +6,7 @@ This research is part of the project "PRIVIA: Identificación Automatizada de Br
 
 ## Research information
 
-- **Main project:** PRIVIA: Identificación Automatizada de Brechas de Privacidad en Ecuador usando Inteligencia Artificial Generativa y LLMs" conducted by Escuela Politécnica Nacional.
+- **Main project:** "PRIVIA: Identificación Automatizada de Brechas de Privacidad en Ecuador usando Inteligencia Artificial Generativa y LLMs" conducted by Escuela Politécnica Nacional.
 - **Main project reference:** PIGR-24-06.
 - **Date:** 2025-07-14.
 
@@ -15,6 +15,7 @@ This research is part of the project "PRIVIA: Identificación Automatizada de Br
 The repository contains 3 files in order to conduct experiments reproducibility according to the following detail:
 
 - Planning.pdf: This document establishes the goal, research questions, inclusion and exclusion criteria, and coding procedure of the comprenhensive review.
+
 - Statistics.Rmd: This R file generates the statistics showed in the paper. To run it, just change the value of the variable Bibliography at the start of the document with the path to the Bibliography.xlxs document.
 
 ```{r}
